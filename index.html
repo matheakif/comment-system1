@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>班級吐槽牆 | 匿名心聲解放區</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Helvetica Neue', 'Noto Sans', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f7f9fc 0%, #eef2f5 100%);
+            padding: 2rem 1.5rem;
+            min-height: 100vh;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 標題區 + 吐槽怪物小icon */
+        .hero {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #2b3b4e, #1e2a36);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hero h1::before {
+            content: "💬";
+            font-size: 2.2rem;
+            background: none;
+            -webkit-background-clip: unset;
+            color: #f39c12;
+        }
+
+        .hero h1::after {
+            content: "🧱";
+            font-size: 2.2rem;
+            background: none;
+            -webkit-background-clip: unset;
+            color: #e67e22;
+        }
+
+        .sub {
+            color: #5d6f83;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* 新增表單卡片 */
+        .form-card {
+            background: white;
+            border-radius: 32px;
+            padding: 1.6rem 2rem;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.03);
+            margin-bottom: 2.2rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 3;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #4b6a8b;
+            margin-bottom: 6px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 28px;
+            border: 1.5px solid #e2e8f0;
+            background: #fefefe;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            outline: none;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: #f39c12;
+            box-shadow: 0 0 0 3px rgba(243,156,18,0.2);
+        }
+
+        .btn-primary {
+            background: #1e2a36;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: #f39c12;
+            transform: scale(0.97);
+            color: #1e2a36;
+        }
+
+        /* 過濾列 */
+        .filters-bar {
+            background: white;
+            border-radius: 60px;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #eef2f8;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group span {
+            font-weight: 600;
+            color: #2c3e44;
+            margin-right: 5px;
+        }
+
+        .filter-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #2c3e44;
+        }
+
+        .filter-btn.active {
+            background: #1e2a36;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .filter-btn:hover:not(.active) {
+            background: #e2e8f0;
+        }
+
+        /* 吐槽卡片列表 */
+        .records-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.2rem 1.6rem;
+            transition: all 0.2s;
+            border-left: 8px solid #f1c40f;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);
+            border: 1px solid #eef2f8;
+            border-left-width: 8px;
+        }
+
+        .card.done {
+            opacity: 0.7;
+            background: #fef9ef;
+            border-left-color: #95a5a6;
+            filter: grayscale(0.02);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+
+        .category-badge {
+            background: #f0f2f5;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            color: #2c3e4e;
+        }
+
+        .category-學校 { background: #e3f2fd; color: #0b5e7c; }
+        .category-功課 { background: #ffedea; color: #c4452c; }
+        .category-生活 { background: #e8f5e9; color: #2e6b3e; }
+        .category-其他 { background: #f3e5f5; color: #6a1b9a; }
+
+        .timestamp {
+            font-size: 0.7rem;
+            color: #8da0b0;
+        }
+
+        .content-text {
+            font-size: 1.1rem;
+            line-height: 1.4;
+            margin: 12px 0 16px 0;
+            color: #1e2a36;
+            word-break: break-word;
+            font-weight: 500;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .btn-like {
+            background: #fff0e7;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #e67e22;
+        }
+
+        .btn-like:hover {
+            background: #fde3cf;
+            transform: scale(1.02);
+        }
+
+        .btn-status {
+            background: #eef2ff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-status:hover {
+            background: #d9e2ef;
+        }
+
+        .likes-count {
+            font-weight: 800;
+            margin-left: 4px;
+            color: #e67e22;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 48px;
+            color: #8ba0ae;
+            font-size: 1.1rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2.8rem;
+            font-size: 0.7rem;
+            color: #8ba3b3;
+        }
+
+        @media (max-width: 650px) {
+            body {
+                padding: 1rem;
+            }
+            .form-card {
+                padding: 1.2rem;
+            }
+            .filters-bar {
+                border-radius: 28px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <h1>班級吐槽牆</h1>
+        <div class="sub">匿名發洩 · 誠實至上 · 今天你想嗆誰？</div>
+    </div>
+
+    <!-- 新增表單區 -->
+    <div class="form-card">
+        <div class="form-row">
+            <div class="input-group" style="flex:4">
+                <label>🗣️ 吐槽內容 (必填)</label>
+                <input type="text" id="newContent" placeholder="例如：老師今天又在台上講冷笑話..." autocomplete="off">
+            </div>
+            <div class="input-group" style="flex:1.5">
+                <label>📂 分類</label>
+                <select id="newCategory">
+                    <option value="學校">學校</option>
+                    <option value="功課">功課</option>
+                    <option value="生活">生活</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <div class="input-group" style="flex:0 0 auto">
+                <button class="btn-primary" id="submitBtn">✍️ 匿名吐槽</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 過濾工具列 -->
+    <div class="filters-bar">
+        <div class="filter-group">
+            <span>🔍 狀態：</span>
+            <button data-status-filter="all" class="filter-btn active">全部</button>
+            <button data-status-filter="active" class="filter-btn">進行中 (active)</button>
+            <button data-status-filter="done" class="filter-btn">已解決 (done)</button>
+        </div>
+        <div class="filter-group">
+            <span>🏷️ 分類：</span>
+            <button data-category-filter="all" class="filter-btn active">全部</button>
+            <button data-category-filter="學校" class="filter-btn">學校</button>
+            <button data-category-filter="功課" class="filter-btn">功課</button>
+            <button data-category-filter="生活" class="filter-btn">生活</button>
+            <button data-category-filter="其他" class="filter-btn">其他</button>
+        </div>
+    </div>
+
+    <!-- 吐槽串流卡片區域 -->
+    <div id="listContainer" class="records-list">
+        <!-- 動態渲染 -->
+        <div class="empty-state">💨 還沒有任何吐槽，快來搶頭香！</div>
+    </div>
+    <footer>⚡ 匿名吐槽牆 · 每則留言都可按讚/完成切換 · 資料存在你的瀏覽器</footer>
+</div>
+
+<script>
+    // ---------- Data Contract (資料合約) ----------
+    /**
+     * record 物件結構:
+     * @typedef {Object} Record
+     * @property {string} id            - 唯一識別碼 (Date.now + random)
+     * @property {number} createdAt     - Unix 時間戳 (毫秒)
+     * @property {string} status        - 'active' 或 'done', 預設 'active'
+     * @property {string} content       - 吐槽內容, 不可為空
+     * @property {string} category      - '學校' | '功課' | '生活' | '其他'
+     * @property {number} likes         - 按讚數, 預設 0, 可 +1
+     */
+
+    // ---------- 全域變數 ----------
+    let recordsData = [];            // 儲存所有吐槽紀錄 (記憶體中)
+    let currentStatusFilter = 'all';   // all / active / done
+    let currentCategoryFilter = 'all'; // all / 學校 / 功課 / 生活 / 其他
+
+    // DOM 元素
+    const listContainer = document.getElementById('listContainer');
+    const newContentInput = document.getElementById('newContent');
+    const newCategorySelect = document.getElementById('newCategory');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // ---------- 輔助函式 ----------
+    function generateId() {
+        return Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+    }
+
+    // 格式化日期 (local 短日期)
+    function formatDate(timestamp) {
+        const date = new Date(timestamp);
+        return `${date.getMonth()+1}/${date.getDate()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+    }
+
+    // ---------- 核心功能 function (照題目要求分開) ----------
+    // 1. createRecord(formData): 根據表單輸入建立新 record 物件 (尚未儲存)
+    function createRecord(formData) {
+        // formData 預期物件: { content, category }
+        if (!formData.content || formData.content.trim() === '') {
+            throw new Error('吐槽內容不可空白');
+        }
+        const now = Date.now();
+        return {
+            id: generateId(),
+            createdAt: now,
+            status: 'active',     // 預設 active
+            content: formData.content.trim(),
+            category: formData.category,
+            likes: 0,
+        };
+    }
+
+    // 2. saveData(record): 將單筆 record 存入 localStorage (同步整個 recordsData 陣列)
+    //    設計上將該 record 加入全域 recordsData 陣列並更新 localStorage
+    function saveData(record) {
+        // 將新紀錄加到陣列最前方 (頁面顯示最新在上)
+        recordsData.unshift(record);
+        // 儲存至 localStorage
+        localStorage.setItem('records', JSON.stringify(recordsData));
+    }
+
+    // 3. loadData(): 從 localStorage 載入資料，初始化 recordsData，回傳紀錄陣列
+    function loadData() {
+        const stored = localStorage.getItem('records');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                // 確保每筆都有 likes, status 等舊版相容 (若缺少就補預設)
+                const validated = parsed.map(record => ({
+                    ...record,
+                    likes: typeof record.likes === 'number' ? record.likes : 0,
+                    status: (record.status === 'active' || record.status === 'done') ? record.status : 'active',
+                    category: ['學校','功課','生活','其他'].includes(record.category) ? record.category : '其他',
+                    content: record.content || '(內容遺失)',
+                    createdAt: record.createdAt || Date.now(),
+                    id: record.id || generateId(),
+                }));
+                recordsData = validated;
+                return recordsData;
+            } catch(e) {
+                console.warn("解析失敗", e);
+                recordsData = [];
+                return [];
+            }
+        } else {
+            recordsData = [];
+            return [];
+        }
+    }
+
+    // 4. updateRecord(id, changes): 更新特定紀錄 (例如 status, likes +1 等)
+    function updateRecord(id, changes) {
+        const index = recordsData.findIndex(r => r.id === id);
+        if (index === -1) return false;
+        // 套用變更 (淺層合併)
+        recordsData[index] = { ...recordsData[index], ...changes };
+        // 更新 localStorage
+        localStorage.setItem('records', JSON.stringify(recordsData));
+        return true;
+    }
+
+    // 5. renderList(recordsToShow): 根據傳入的過濾後陣列繪製卡片
+    function renderList(recordsToShow) {
+        if (!listContainer) return;
+        if (!recordsToShow || recordsToShow.length === 0) {
+            listContainer.innerHTML = `<div class="empty-state">📭 沒有符合條件的吐槽，換個篩選吧～</div>`;
+            return;
+        }
+
+        // 逐一產生卡片 HTML
+        const html = recordsToShow.map(record => {
+            // 附加樣式 status done 時卡片的額外類別
+            const isDone = record.status === 'done';
+            const cardClass = isDone ? 'card done' : 'card';
+            // 分類特殊色 class
+            const categoryClass = `category-${record.category}`;
+            // 狀態按鈕文字與動作參數
+            const statusBtnText = isDone ? '🔁 恢復 active' : '✅ 標記完成';
+            const targetStatus = isDone ? 'active' : 'done';
+
+            return `
+                <div class="${cardClass}" data-id="${record.id}">
+                    <div class="card-header">
+                        <div>
+                            <span class="category-badge ${categoryClass}">📌 ${record.category}</span>
+                            <span class="timestamp"> 🕒 ${formatDate(record.createdAt)}</span>
+                        </div>
+                        <div class="timestamp" style="font-family: monospace;">#${record.id.slice(-6)}</div>
+                    </div>
+                    <div class="content-text">“ ${escapeHtml(record.content)} ”</div>
+                    <div class="card-actions">
+                        <button class="btn-like" data-action="like" data-id="${record.id}">
+                            👍 讚 <span class="likes-count">${record.likes}</span>
+                        </button>
+                        <button class="btn-status" data-action="toggleStatus" data-id="${record.id}" data-newstatus="${targetStatus}">
+                            ${statusBtnText}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        listContainer.innerHTML = html;
+
+        // 綁定卡片內的動態按鈕事件 (事件委派也可，但直接在渲染後綁定更清楚)
+        document.querySelectorAll('[data-action="like"]').forEach(btn => {
+            btn.removeEventListener('click', handleLikeClick);
+            btn.addEventListener('click', handleLikeClick);
+        });
+        document.querySelectorAll('[data-action="toggleStatus"]').forEach(btn => {
+            btn.removeEventListener('click', handleStatusClick);
+            btn.addEventListener('click', handleStatusClick);
+        });
+    }
+
+    // 避免 XSS 輔助
+    function escapeHtml(str) {
+        if(!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // 事件處理: 按讚
+    function handleLikeClick(e) {
+        const btn = e.currentTarget;
+        const id = btn.getAttribute('data-id');
+        if (!id) return;
+        const record = recordsData.find(r => r.id === id);
+        if (record) {
+            const newLikes = (record.likes || 0) + 1;
+            updateRecord(id, { likes: newLikes });
+            // 更新完後重新渲染過濾後資料
+            applyFiltersAndRender();
+        }
+    }
+
+    // 事件處理: 切換狀態 (active/done)
+    function handleStatusClick(e) {
+        const btn = e.currentTarget;
+        const id = btn.getAttribute('data-id');
+        const newStatus = btn.getAttribute('data-newstatus');
+        if (!id || !newStatus) return;
+        if (newStatus === 'active' || newStatus === 'done') {
+            updateRecord(id, { status: newStatus });
+            applyFiltersAndRender();
+        }
+    }
+
+    // ----- 過濾邏輯 (取得過濾後資料, 並執行渲染) -----
+    function getFilteredRecords() {
+        // 先根據狀態過濾
+        let filtered = [...recordsData];
+        if (currentStatusFilter !== 'all') {
+            filtered = filtered.filter(r => r.status === currentStatusFilter);
+        }
+        // 再根據分類過濾
+        if (currentCategoryFilter !== 'all') {
+            filtered = filtered.filter(r => r.category === currentCategoryFilter);
+        }
+        // 排序: 依照 createdAt 由新到舊 (最新在上，因為原本 unshift 但過濾後確保排序)
+        filtered.sort((a,b) => b.createdAt - a.createdAt);
+        return filtered;
+    }
+
+    function applyFiltersAndRender() {
+        const filtered = getFilteredRecords();
+        renderList(filtered);
+    }
+
+    // 新增吐槽的主流程 (整合 createRecord + saveData + render)
+    function addNewRecord() {
+        const content = newContentInput.value;
+        const category = newCategorySelect.value;
+        if (!content || content.trim() === '') {
+            alert('請填寫吐槽內容！不能空白喔～');
+            return false;
+        }
+        try {
+            const newRecord = createRecord({ content, category });
+            saveData(newRecord);      // 存入 localStorage 且加到 recordsData 最前
+            // 清空輸入欄位
+            newContentInput.value = '';
+            // 重置過濾器為全部/全部 同時保持友善體驗 (題目沒強制但不會造成困惑，建議保留原篩選？可維持原本篩選讓新留言可見)
+            // 但為了讓「新增後即時顯示在頁面最上方」，確保目前篩選如果含 active (預設新的是 active)，且分類符合則看得到。
+            // 如果使用者篩選 done 狀態則新留言(active)不會出現，為避免混淆，這邊重置狀態過濾為全部、分類為全部 (符合直覺)
+            // 保證「新增後即時顯示在最上方」無論如何都會看到, 我們將狀態過濾和分類過濾重置為全部並刷新按鈕樣式。
+            currentStatusFilter = 'all';
+            currentCategoryFilter = 'all';
+            // 更新 UI 上的過濾按鈕 active 樣式
+            updateFilterButtonsUI();
+            // 重新渲染
+            applyFiltersAndRender();
+            return true;
+        } catch (err) {
+            alert(err.message);
+            return false;
+        }
+    }
+
+    // 更新過濾按鈕的樣式 (active class)
+    function updateFilterButtonsUI() {
+        // 狀態按鈕
+        document.querySelectorAll('[data-status-filter]').forEach(btn => {
+            const filterVal = btn.getAttribute('data-status-filter');
+            if (filterVal === currentStatusFilter) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        // 分類按鈕
+        document.querySelectorAll('[data-category-filter]').forEach(btn => {
+            const filterVal = btn.getAttribute('data-category-filter');
+            if (filterVal === currentCategoryFilter) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    // 設定過濾事件
+    function bindFilterEvents() {
+        // 狀態過濾
+        document.querySelectorAll('[data-status-filter]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const filterValue = btn.getAttribute('data-status-filter');
+                if (filterValue === 'all' || filterValue === 'active' || filterValue === 'done') {
+                    currentStatusFilter = filterValue;
+                }
+                updateFilterButtonsUI();
+                applyFiltersAndRender();
+            });
+        });
+        // 分類過濾
+        document.querySelectorAll('[data-category-filter]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const filterValue = btn.getAttribute('data-category-filter');
+                currentCategoryFilter = filterValue;
+                updateFilterButtonsUI();
+                applyFiltersAndRender();
+            });
+        });
+    }
+
+    // 初始化程式
+    function init() {
+        // 1. 載入資料
+        loadData();
+        // 2. 綁定新增按鈕事件
+        submitBtn.addEventListener('click', () => {
+            addNewRecord();
+        });
+        // 支援 Enter 快速新增 (在輸入框按 enter)
+        newContentInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addNewRecord();
+            }
+        });
+        // 3. 過濾事件綁定
+        bindFilterEvents();
+        // 4. 初始渲染全部資料
+        applyFiltersAndRender();
+    }
+
+    // 啟動系統
+    init();
+</script>
+</body>
+</html>
